@@ -1,12 +1,7 @@
-<tool id="kaldi_stt" name="Kaldi Speech to Text" version="1.0.0">
-  <description>Local Kaldi Speech-to-Text transcription</description>
-  <requirements>
-    <requirement type="package" version="3.8">python</requirement>
-    <requirement type="package" version="8.30">coreutils</requirement>
-  </requirements>
+<tool id="whisper_stt" name="Whisper Speech to Text" version="1.0.0">
+  <description>Whisper speech to text transcription</description>  
   <command detect_errors="exit_code"><![CDATA[
-  	'$__tool_directory__/kaldi.py' '$input_audio' '$kaldi_transcript_json' '$kaldi_transcript_text' &&
-    '$__tool_directory__/kaldi_transcript_to_amp_transcript.py' '$input_audio' '$kaldi_transcript_json' '$kaldi_transcript_text' '$amp_transcript'
+  	'$__tool_directory__/whisper.py' '$input_audio' '$kaldi_transcript_json' '$kaldi_transcript_text'
   ]]></command>
   <inputs>
     <!-- should be wav data type -->
