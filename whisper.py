@@ -34,13 +34,13 @@ whisper_languages = [
     'Ukrainian', 'Urdu', 'Uzbek',
     'Valencian', 'Vietnamese',
     'Welsh',
-    'Yiddish,Yoruba'
+    'Yiddish', 'Yoruba'
 ]
-
+# I originally set this when I was loading the models into the container but
+# in the interest of size, they're now loaded to the user's home directory.
 whisper_model_dir = "/opt/whisper"
-whisper_models = ['tiny', 'base', 'small', 'medium', 'large']
-
-
+whisper_models = ['tiny', 'tiny.en', 'base', 'base.en', 'small', 'small.en',
+                  'medium', 'medium.en', 'large-v1', 'large-v2', 'large']
 
 def main():
     parser = argparse.ArgumentParser()
@@ -67,7 +67,7 @@ def main():
 
     with tempfile.TemporaryDirectory(prefix="whisper-") as tmpdir:
         logging.debug(f"Temporary directory: {tmpdir}")
-        whisper_args = ["--model_dir", whisper_model_dir,
+        whisper_args = [#"--model_dir", whisper_model_dir,
                         "--output_dir", tmpdir,
                         "--model", args.model,
                         "--word_timestamps", "True",

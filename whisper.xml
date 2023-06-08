@@ -1,23 +1,157 @@
 <tool id="whisper_stt" name="Whisper Speech to Text" version="1.0.0">
   <description>Whisper speech to text transcription</description>  
   <command detect_errors="exit_code"><![CDATA[
-  	'$__tool_directory__/whisper.py' '$input_audio' '$kaldi_transcript_json' '$kaldi_transcript_text'
-  ]]></command>
+  	'$__tool_directory__/whisper.py' 
+        --model '$model' 
+        --language '$language' 
+        --webvtt '$webvtt' 
+        --amp_transcript '$amp_transcript' 
+        --transcript_text '$whisper_transcript_text' 
+        --transcript_json '$whisper_transcript_json' 
+        '$input_audio'
+  ]]></command>  
   <inputs>
     <!-- should be wav data type -->
     <param name="input_audio" type="data" format="wav" label="Input Audio" help="Audio file to transcribe"/>
+    <param name="model" type="select" label="ML Training Model">
+      <option value="tiny">tiny</option>
+      <option value="tiny.en">tiny.en</option>
+      <option value="base">base</option>
+      <option value="base.en">base.en</option>
+      <option value="small" selected="true">small</option>
+      <option value="small.en">small.en</option>
+      <option value="medium">medium</option>
+      <option value="medium.en">medium.en</option>
+      <option value="large-v1">large-v1</option>
+      <option value="large-v2">large-v2</option>
+      <option value="large">large</option>
+    </param>
+    <param name="language" type="select" label="Audio Language">
+      <option value="Auto" selected="true">Auto</option>
+      <option value="Afrikaans">Afrikaans</option>
+      <option value="Albanian">Albanian</option>
+      <option value="Amharic">Amharic</option>
+      <option value="Arabic">Arabic</option>
+      <option value="Armenian">Armenian</option>
+      <option value="Assamese">Assamese</option>
+      <option value="Azerbaijani">Azerbaijani</option>
+      <option value="Bashkir">Bashkir</option>
+      <option value="Basque">Basque</option>
+      <option value="Belarusian">Belarusian</option>
+      <option value="Bengali">Bengali</option>
+      <option value="Bosnian">Bosnian</option>
+      <option value="Breton">Breton</option>
+      <option value="Bulgarian">Bulgarian</option>
+      <option value="Burmese">Burmese</option>
+      <option value="Castilian">Castilian</option>
+      <option value="Catalan">Catalan</option>
+      <option value="Chinese">Chinese</option>
+      <option value="Croatian">Croatian</option>
+      <option value="Czech">Czech</option>
+      <option value="Danish">Danish</option>
+      <option value="Dutch">Dutch</option>
+      <option value="English">English</option>
+      <option value="Estonian">Estonian</option>
+      <option value="Faroese">Faroese</option>
+      <option value="Finnish">Finnish</option>
+      <option value="Flemish">Flemish</option>
+      <option value="French">French</option>
+      <option value="Galician">Galician</option>
+      <option value="Georgian">Georgian</option>
+      <option value="German">German</option>
+      <option value="Greek">Greek</option>
+      <option value="Gujarati">Gujarati</option>
+      <option value="Haitian">Haitian</option>
+      <option value="Haitian Creole">Haitian Creole</option>
+      <option value="Hausa">Hausa</option>
+      <option value="Hawaiian">Hawaiian</option>
+      <option value="Hebrew">Hebrew</option>
+      <option value="Hindi">Hindi</option>
+      <option value="Hungarian">Hungarian</option>
+      <option value="Icelandic">Icelandic</option>
+      <option value="Indonesian">Indonesian</option>
+      <option value="Italian">Italian</option>
+      <option value="Japanese">Japanese</option>
+      <option value="Javanese">Javanese</option>
+      <option value="Kannada">Kannada</option>
+      <option value="Kazakh">Kazakh</option>
+      <option value="Khmer">Khmer</option>
+      <option value="Korean">Korean</option>
+      <option value="Lao">Lao</option>
+      <option value="Latin">Latin</option>
+      <option value="Latvian">Latvian</option>
+      <option value="Letzeburgesch">Letzeburgesch</option>
+      <option value="Lingala">Lingala</option>
+      <option value="Lithuanian">Lithuanian</option>
+      <option value="Luxembourgish">Luxembourgish</option>
+      <option value="Macedonian">Macedonian</option>
+      <option value="Malagasy">Malagasy</option>
+      <option value="Malay">Malay</option>
+      <option value="Malayalam">Malayalam</option>
+      <option value="Maltese">Maltese</option>
+      <option value="Maori">Maori</option>
+      <option value="Marathi">Marathi</option>
+      <option value="Moldavian">Moldavian</option>
+      <option value="Moldovan">Moldovan</option>
+      <option value="Mongolian">Mongolian</option>
+      <option value="Myanmar">Myanmar</option>
+      <option value="Nepali">Nepali</option>
+      <option value="Norwegian">Norwegian</option>
+      <option value="Nynorsk">Nynorsk</option>
+      <option value="Occitan">Occitan</option>
+      <option value="Panjabi">Panjabi</option>
+      <option value="Pashto">Pashto</option>
+      <option value="Persian">Persian</option>
+      <option value="Polish">Polish</option>
+      <option value="Portuguese">Portuguese</option>
+      <option value="Punjabi">Punjabi</option>
+      <option value="Pushto">Pushto</option>
+      <option value="Romanian">Romanian</option>
+      <option value="Russian">Russian</option>
+      <option value="Sanskrit">Sanskrit</option>
+      <option value="Serbian">Serbian</option>
+      <option value="Shona">Shona</option>
+      <option value="Sindhi">Sindhi</option>
+      <option value="Sinhala">Sinhala</option>
+      <option value="Sinhalese">Sinhalese</option>
+      <option value="Slovak">Slovak</option>
+      <option value="Slovenian">Slovenian</option>
+      <option value="Somali">Somali</option>
+      <option value="Spanish">Spanish</option>
+      <option value="Sundanese">Sundanese</option>
+      <option value="Swahili">Swahili</option>
+      <option value="Swedish">Swedish</option>
+      <option value="Tagalog">Tagalog</option>
+      <option value="Tajik">Tajik</option>
+      <option value="Tamil">Tamil</option>
+      <option value="Tatar">Tatar</option>
+      <option value="Telugu">Telugu</option>
+      <option value="Thai">Thai</option>
+      <option value="Tibetan">Tibetan</option>
+      <option value="Turkish">Turkish</option>
+      <option value="Turkmen">Turkmen</option>
+      <option value="Ukrainian">Ukrainian</option>
+      <option value="Urdu">Urdu</option>
+      <option value="Uzbek">Uzbek</option>
+      <option value="Valencian">Valencian</option>
+      <option value="Vietnamese">Vietnamese</option>
+      <option value="Welsh">Welsh</option>
+      <option value="Yiddish">Yiddish</option>
+      <option value="Yoruba">Yoruba</option>
+    </param>
   </inputs>
   <outputs>
-    <data name="kaldi_transcript_json" format="json" label="Kaldi Transcript JSON"/>
-    <data name="kaldi_transcript_text" format="txt" label="Kaldi Transcript Text" />
+    <data name="whisper_transcript_json" format="json" label="Whisper Transcript JSON"/>
+    <data name="whisper_transcript_text" format="txt" label="Whisper Transcript Text" />
     <data name="amp_transcript" format="transcript" label="AMP Transcript" />
+    <data name="webvtt" format="txt" label="WebVTT Subtitles" />
   </outputs>
   <tests>
   </tests>
   <help>
 .. class:: infomark
 
-Do a speech-to-text transcribe on an audio file using a local Kaldi instance.
+Do a speech-to-text transcribe on an audio file using a local Whisper instance.
 
   </help>
 </tool>
