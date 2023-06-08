@@ -9,5 +9,17 @@ yum install -y python3 python3-pip ffmpeg-free
 pip3 install setuptools-rust
 pip3 install openai-Whisper
 
+
+# install the models somewhere
+mkdir -p /opt/whisper
+for n in tiny base small medium large; do
+    whisper --model $n --model_dir=/opt/whisper /dev/null || true
+done
+
+# Clean up everything.
+rm -rf /root/.cache/pip
+yum clean all
+
+
 %runscript
 whisper "$@"

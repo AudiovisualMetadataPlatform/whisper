@@ -13,19 +13,56 @@ import atexit
 import os
 import time
 
+whisper_languages = [
+    'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
+    'Bashkir', 'Basque', 'Belarusian', 'Bengali', 'Bosnian', 'Breton', 'Bulgarian', 'Burmese',
+    'Castilian', 'Catalan', 'Chinese', 'Croatian', 'Czech',
+    'Danish', 'Dutch',
+    'English', 'Estonian', 'Faroese', 'Finnish', 'Flemish', 'French',
+    'Galician', 'Georgian', 'German', 'Greek', 'Gujarati',
+    'Haitian', 'Haitian Creole', 'Hausa', 'Hawaiian', 'Hebrew', 'Hindi', 'Hungarian',
+    'Icelandic', 'Indonesian', 'Italian',
+    'Japanese', 'Javanese',
+    'Kannada', 'Kazakh', 'Khmer', 'Korean',
+    'Lao', 'Latin', 'Latvian', 'Letzeburgesch', 'Lingala', 'Lithuanian', 'Luxembourgish',
+    'Macedonian', 'Malagasy', 'Malay', 'Malayalam', 'Maltese', 'Maori', 'Marathi', 'Moldavian',
+    'Moldovan', 'Mongolian', 'Myanmar',
+    'Nepali', 'Norwegian', 'Nynorsk',
+    'Occitan',
+    'Panjabi', 'Pashto', 'Persian', 'Polish', 'Portuguese', 'Punjabi', 'Pushto',
+    'Romanian', 'Russian',
+    'Sanskrit', 'Serbian', 'Shona', 'Sindhi', 'Sinhala', 'Sinhalese', 'Slovak', 'Slovenian',
+    'Somali', 'Spanish', 'Sundanese', 'Swahili', 'Swedish',
+    'Tagalog', 'Tajik', 'Tamil', 'Tatar', 'Telugu', 'Thai', 'Tibetan', 'Turkish', 'Turkmen',
+    'Ukrainian', 'Urdu', 'Uzbek',
+    'Valencian', 'Vietnamese',
+    'Welsh',
+    'Yiddish,Yoruba'
+]
+
+whisper_model_dir = "/opt/whisper"
+whisper_models = ['tiny', 'base', 'small', 'medium', 'large']
 
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", default=False, action="store_true", help="Turn on debugging")
-    parser.add_argument("input_audio", help="Input audio file")
-    parser.add_argument("kaldi_transcript_json", help="Output Kaldi Transcript JSON file")
-    parser.add_argument("kaldi_transcript_text", help="Output Kaldi Transcript Text file")
-    parser.add_argument("--overlay_dir", default=None, nargs=1, help="Directory for the overlay file (default to cwd)")
+    parser.add_argument("input_media", help="Input media file")
+    parser.add_argument("--transcript_json", type=str, help="Output Whisper Transcript JSON file")
+    parser.add_argument("--transcript_text", type=str, help="Output Whisper Transcript Text file")
+    parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript")
+    parser.add_argument("--webvtt", type=str, help="WebVTT output")    
+    parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
+    parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
     args = parser.parse_args()    
     logging.basicConfig(format="%(asctime)s [%(levelname)-8s] (%(filename)s:%(lineno)d:%(process)d)  %(message)s", level=logging.DEBUG if args.debug else logging.INFO)   
     logging.info(f"Starting with args {args}")
+
+    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None:
+        logging.error("You must select an output of some sort!")
+        exit(1)
+
 
     # copy the input file to a temporary directory
     with tempfile.TemporaryDirectory() as tmpdir:        
