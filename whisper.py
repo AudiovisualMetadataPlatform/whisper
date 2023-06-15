@@ -8,7 +8,7 @@ import argparse
 import logging
 from pathlib import Path
 import json
-
+import amp.logging
 
 whisper_languages = [
     'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
@@ -53,7 +53,7 @@ def main():
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
     args = parser.parse_args()    
-    logging.basicConfig(format="%(asctime)s [%(levelname)-8s] (%(filename)s:%(lineno)d:%(process)d)  %(message)s", level=logging.DEBUG if args.debug else logging.INFO)   
+    amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
 
     if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None:
@@ -125,6 +125,7 @@ def main():
             logging.exception(f"Failed to gather outputs: {e}")
             exit(1)
 
+    logging.info("Finished!")
 
 def get_file_by_ext(path, ext):
     files = list(Path(path).glob(f"*.{ext}"))
