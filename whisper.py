@@ -8,6 +8,14 @@ import argparse
 import logging
 from pathlib import Path
 import json
+
+# we need the amp packages for logging, but alas galaxy has overwritten the
+# carefully crafted PYTHONPATH that included them.  So let's get them back if
+# we can.
+import os
+if 'AMP_ROOT' in os.environ:
+    sys.path.append(os.environ['AMP_ROOT'] + "/amp_bootstrap")
+
 import amp.logging
 
 whisper_languages = [
