@@ -109,23 +109,32 @@ def main():
                         'duration': 0
                     },
                     'results': {
-                        'transcript': data['text'],
+                        'transcript': data['text'].strip(),
                         'words': []
                     }
                 }                
                 duration = 0
+                offset = 0
                 for seg in data['segments']:
                     for word in seg['words']:
+                        xword = word['word'][1:]
                         amp_transcript['results']['words'].append({
-                            'type': "",
-                            'text': word['word'],
+                            'type': "pronunciation",
+                            'text': xword,
                             'start': word['start'],
-                            'end': word['end']
-                        })
+                            'end': word['end'],
+                            'offset': offset
+                        })                        
+                        tword = amp_transcript['results']['transcript'][offset:offset + len(xword)]
+                        if tword != xword:
+                            logging.warning(f"Transcript mismatch @{offset}: word='{xword}', transcript='{tword}'")
+                        else:
+                            logging.debug(f"Transcript correct: @{offset}: word={xword}, transcript={tword}")
+                        offset += len(word['word'])
                         duration = max(duration, word['end'])
                 
                 amp_transcript['results']['duration'] = duration 
-
+                amp_transcript['media']['duration'] = duration
                 with open(args.amp_transcript, "w") as f:
                     json.dump(amp_transcript, f)
 
