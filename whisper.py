@@ -17,6 +17,7 @@ if 'AMP_ROOT' in os.environ:
     sys.path.append(os.environ['AMP_ROOT'] + "/amp_bootstrap")
 
 import amp.logging
+import amp.gpu
 
 whisper_languages = [
     'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
@@ -73,17 +74,27 @@ def main():
         logging.error(f"Whisper SIF file {sif!s} not found")
         exit(1)
 
+    has_gpu = False
+    if gpu.has_gpu('nvidia'):
+        runcmd = ['apptainer', 'run', '--nv', str(sif)]
+        has_gpu = True
+    else:
+        runcmd = [str(sif)]
+
     with tempfile.TemporaryDirectory(prefix="whisper-") as tmpdir:
         logging.debug(f"Temporary directory: {tmpdir}")
-        whisper_args = [#"--model_dir", whisper_model_dir,
-                        "--output_dir", tmpdir,
+        whisper_args = ["--output_dir", tmpdir,
                         "--model", args.model,
                         "--word_timestamps", "True",
                         args.input_media]
         if args.language != "Auto":
             whisper_args.extend(['--language', args.language])
         try:
-            subprocess.run([str(sif), *whisper_args], check=True)
+            if has_gpu:
+                with gpu.ExclusiveGPU('/dev/nvidia0') as g:
+                    subprocess.run([*runcmd, *whisper_args])
+            else:
+                subprocess.run([*runcmd, *whisper_args], check=True)
         except Exception as e:
             logging.exception(f"Failed to transcribe: {e}")
             exit(1)
