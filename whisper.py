@@ -75,7 +75,7 @@ def main():
         exit(1)
 
     has_gpu = False
-    if gpu.has_gpu('nvidia'):
+    if amp.gpu.has_gpu('nvidia'):
         runcmd = ['apptainer', 'run', '--nv', str(sif)]
         has_gpu = True
     else:
@@ -91,7 +91,7 @@ def main():
             whisper_args.extend(['--language', args.language])
         try:
             if has_gpu:
-                with gpu.ExclusiveGPU('nvidia') as g:
+                with amp.gpu.ExclusiveGPU('nvidia') as g:
                     logging.info(f"Acquired device {g.name}")
                     subprocess.run([*runcmd, *whisper_args])
             else:
