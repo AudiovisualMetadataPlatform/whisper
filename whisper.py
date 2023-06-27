@@ -91,7 +91,8 @@ def main():
             whisper_args.extend(['--language', args.language])
         try:
             if has_gpu:
-                with gpu.ExclusiveGPU('/dev/nvidia0') as g:
+                with gpu.ExclusiveGPU('nvidia') as g:
+                    logging.info(f"Acquired device {g.name}")
                     subprocess.run([*runcmd, *whisper_args])
             else:
                 subprocess.run([*runcmd, *whisper_args], check=True)
