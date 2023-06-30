@@ -89,13 +89,16 @@ def main():
                         args.input_media]
         if args.language != "Auto":
             whisper_args.extend(['--language', args.language])
+        
+        cmd = [*runcmd, *whisper_args]
+        logging.info(f"Whisper command: {cmd}")
         try:
             if has_gpu:
                 with amp.gpu.ExclusiveGPU('nvidia') as g:
                     logging.info(f"Acquired device {g.name}")
-                    subprocess.run([*runcmd, *whisper_args])
+                    subprocess.run(cmd, check=True)
             else:
-                subprocess.run([*runcmd, *whisper_args], check=True)
+                subprocess.run(cmd, check=True)
         except Exception as e:
             logging.exception(f"Failed to transcribe: {e}")
             exit(1)
