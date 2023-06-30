@@ -61,6 +61,7 @@ def main():
     parser.add_argument("--webvtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
+    parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
     args = parser.parse_args()    
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
@@ -75,7 +76,7 @@ def main():
         exit(1)
 
     has_gpu = False
-    if amp.gpu.has_gpu('nvidia'):
+    if not args.cpuonly and amp.gpu.has_gpu('nvidia'):
         runcmd = ['apptainer', 'run', '--nv', str(sif)]
         has_gpu = True
     else:
