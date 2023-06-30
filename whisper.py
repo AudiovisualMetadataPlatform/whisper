@@ -17,6 +17,7 @@ if 'AMP_ROOT' in os.environ:
     sys.path.append(os.environ['AMP_ROOT'] + "/amp_bootstrap")
 
 import amp.logging
+import amp.gpu
 
 whisper_languages = [
     'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
@@ -60,6 +61,7 @@ def main():
     parser.add_argument("--webvtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
+    parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
     args = parser.parse_args()    
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
@@ -73,17 +75,31 @@ def main():
         logging.error(f"Whisper SIF file {sif!s} not found")
         exit(1)
 
+    has_gpu = False
+    if not args.cpuonly and amp.gpu.has_gpu('nvidia'):
+        runcmd = ['apptainer', 'run', '--nv', str(sif)]
+        has_gpu = True
+    else:
+        runcmd = [str(sif)]
+
     with tempfile.TemporaryDirectory(prefix="whisper-") as tmpdir:
         logging.debug(f"Temporary directory: {tmpdir}")
-        whisper_args = [#"--model_dir", whisper_model_dir,
-                        "--output_dir", tmpdir,
+        whisper_args = ["--output_dir", tmpdir,
                         "--model", args.model,
                         "--word_timestamps", "True",
                         args.input_media]
         if args.language != "Auto":
             whisper_args.extend(['--language', args.language])
+        
+        cmd = [*runcmd, *whisper_args]
+        logging.info(f"Whisper command: {cmd}")
         try:
-            subprocess.run([str(sif), *whisper_args], check=True)
+            if has_gpu:
+                with amp.gpu.ExclusiveGPU('nvidia') as g:
+                    logging.info(f"Acquired device {g.name}")
+                    subprocess.run(cmd, check=True)
+            else:
+                subprocess.run(cmd, check=True)
         except Exception as e:
             logging.exception(f"Failed to transcribe: {e}")
             exit(1)
