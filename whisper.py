@@ -113,7 +113,39 @@ def main():
                 shutil.copy(get_file_by_ext(tmpdir, 'txt'), args.transcript_text)
 
             if args.webvtt:
-                shutil.copy(get_file_by_ext(tmpdir, 'vtt'), args.webvtt)
+                # the data out of whisper is pretty straightforward so I'm not
+                # going to worry too much about hardcore vtt parsing.                
+                with open(get_file_by_ext(tmpdir, 'vtt')) as i:
+                    # get the size of the input file...
+                    i.seek(0, os.SEEK_END)
+                    i_size = i.tell()
+                    i.seek(0, os.SEEK_SET)              
+                    with open(args.webvtt, "w") as o:
+                        o.write(i.readline())  # WEBVTT
+                        o.write(i.readline())  # <blank line>
+                        (last_line, last_start, last_end) = (None, None, None)
+                        while i.tell() < i_size:
+                            (start, _, end) = i.readline().strip().split(" ")                            
+                            start = fix_time(start)
+                            end = fix_time(end)
+                            oline = i.readline().strip()
+                            line = oline.replace("<u>", "").replace("</u>", "")
+                            i.readline() # blank line
+                            # first time through?
+                            if last_line is None:
+                                (last_line, last_start, last_end) = (line, start, end)
+                            # New lines start with "<u>"...
+                            elif not oline.startswith("<u>"):
+                                last_end = end
+                            else:
+                                o.write(f"{last_start} --> {last_end}\n")
+                                o.write(last_line + "\n\n")                                
+                                (last_line, last_start, last_end) = (line, start, end)
+                        # catch the last one
+                        if last_line is not None:
+                            o.write(f"{last_start} --> {last_end}\n")
+                            o.write(f"{last_line}\n\n")
+                shutil.copy(get_file_by_ext(tmpdir, 'vtt'), args.webvtt + ".original")
 
             if args.amp_transcript:
                 # convert the native json transcript to an amp transcript
@@ -166,6 +198,15 @@ def get_file_by_ext(path, ext):
         return files[0]
     else:
         raise FileNotFoundError(f"Cannot find file with extension {ext} in {path}")
+
+
+def fix_time(time):
+    parts = time.split(":")
+    if len(parts) == 2:
+        return ":".join(["00", *parts])
+    else:
+        return time
+    
 
 if __name__ == "__main__":
     main()
