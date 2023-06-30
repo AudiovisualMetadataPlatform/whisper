@@ -57,7 +57,8 @@ def main():
     parser.add_argument("input_media", help="Input media file")
     parser.add_argument("--transcript_json", type=str, help="Output Whisper Transcript JSON file")
     parser.add_argument("--transcript_text", type=str, help="Output Whisper Transcript Text file")
-    parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript")
+    parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript File")
+    parser.add_argument("--amp_diarization", type=str, help="Output AMP Diarization FIle")
     parser.add_argument("--webvtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
@@ -66,7 +67,7 @@ def main():
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
 
-    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None:
+    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None and args.amp_diarization is None:
         logging.error("You must select an output of some sort!")
         exit(1)
 
@@ -135,12 +136,14 @@ def main():
                             if last_line is None:
                                 (last_line, last_start, last_end) = (line, start, end)
                             # New lines start with "<u>"...
-                            elif not oline.startswith("<u>"):
-                                last_end = end
-                            else:
+                            elif oline.startswith("<u>"):                            
                                 o.write(f"{last_start} --> {last_end}\n")
                                 o.write(last_line + "\n\n")                                
-                                (last_line, last_start, last_end) = (line, start, end)
+                                (last_line, last_start, last_end) = (line, start, end)    
+                            # continuation...
+                            else:   
+                                last_end = end
+                            
                         # catch the last one
                         if last_line is not None:
                             o.write(f"{last_start} --> {last_end}\n")
@@ -186,11 +189,15 @@ def main():
                 with open(args.amp_transcript, "w") as f:
                     json.dump(amp_transcript, f)
 
+            if args.amp_diarization:
+                pass
+
         except Exception as e:
             logging.exception(f"Failed to gather outputs: {e}")
             exit(1)
 
     logging.info("Finished!")
+
 
 def get_file_by_ext(path, ext):
     files = list(Path(path).glob(f"*.{ext}"))
