@@ -4,7 +4,7 @@ From: fedora:38
 
 %post
 yum update -y
-yum install -y python3 python3-pip ffmpeg-free
+yum install -y python3 python3-pip ffmpeg-free util-linux
 
 pip3 install setuptools-rust
 pip3 install openai-Whisper
