@@ -7,7 +7,8 @@
         --webvtt '$webvtt' 
         --amp_transcript '$amp_transcript' 
         --transcript_text '$whisper_transcript_text' 
-        --transcript_json '$whisper_transcript_json' 
+        --transcript_json '$whisper_transcript_json'
+        --amp_diarization '$amp_diarization' 
         '$input_audio'
   ]]></command>  
   <inputs>
@@ -144,6 +145,7 @@
     <data name="whisper_transcript_json" format="json" label="Whisper Transcript JSON"/>
     <data name="whisper_transcript_text" format="txt" label="Whisper Transcript Text" />
     <data name="amp_transcript" format="transcript" label="AMP Transcript" />
+    <data name="amp_diarization" format="segment" label="AMP Diarization" />
     <data name="webvtt" format="txt" label="WebVTT Subtitles" />
   </outputs>
   <tests>
