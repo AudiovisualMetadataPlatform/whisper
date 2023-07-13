@@ -7,6 +7,7 @@ import tempfile
 import argparse
 import logging
 from pathlib import Path
+import re
 
 # we need the amp packages for some things, but alas galaxy has overwritten the
 # carefully crafted PYTHONPATH that included them.  So let's get them back if
@@ -19,6 +20,7 @@ import amp.logging
 import amp.gpu
 from amp.timeutils import hhmmss2timestamp, timestamp2hhmmss
 from amp.fileutils import read_json_file, write_json_file
+from amp.annotations import Annotations
 
 whisper_languages = [
     'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
@@ -64,9 +66,15 @@ def main():
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
     parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
+    parser.add_argument("--annotation_in", type=str, help="Annotation input file")
+    parser.add_argument("annotation_out", nargs='?', help="Updated Annotation file")
+
     args = parser.parse_args()    
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
+
+    annotations = Annotations(args.annotation_in, args.input_media, 
+                              'whisper', '1.0', vars(args))
 
     if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None and args.amp_diarization is None:
         logging.error("You must select an output of some sort!")
@@ -111,6 +119,9 @@ def main():
             if args.transcript_json:
                 shutil.copy(get_file_by_ext(tmpdir, 'json'), args.transcript_json)
 
+            if args.annotation_out:
+                generate_annotations(annotations, read_json_file(args.transcript_json))
+
             if args.transcript_text:
                 shutil.copy(get_file_by_ext(tmpdir, 'txt'), args.transcript_text)
 
@@ -126,6 +137,9 @@ def main():
         except Exception as e:
             logging.exception(f"Failed to gather outputs: {e}")
             exit(1)
+
+    if args.annotation_out:
+        annotations.save(args.annotation_out)
 
     logging.info("Finished!")
 
@@ -190,7 +204,7 @@ def generate_amp_transcript(whisper_file, amp_file, input_media):
             'transcript': data['text'].strip(),
             'words': []
         }
-    }                
+    }    
     duration = 0
     offset = 0
     for seg in data['segments']:
@@ -202,7 +216,7 @@ def generate_amp_transcript(whisper_file, amp_file, input_media):
                 'start': word['start'],
                 'end': word['end'],
                 'offset': offset
-            })                        
+            })                      
             tword = amp_transcript['results']['transcript'][offset:offset + len(xword)]
             if tword != xword:
                 logging.warning(f"Transcript mismatch @{offset}: word='{xword}', transcript='{tword}'")
@@ -240,7 +254,7 @@ def generate_amp_diarization(whisper_json, amp_diarization, input_media):
             d['segments'].append({'label': None,
                                   'start': seg_start,
                                   'end': seg_end,
-                                  'speakerLabel': 'spk_0'})
+                                  'speakerLabel': 'spk_0'})            
             seg_start = seg['start']
             seg_end = seg['end']
 
@@ -253,6 +267,27 @@ def generate_amp_diarization(whisper_json, amp_diarization, input_media):
     d['media']['duration'] = seg_end
 
     write_json_file(d, amp_diarization)
+
+
+def generate_annotations(annotations, data):
+    # dump the raw transcript annotation
+    transcript_start = min([x['start'] for x in data['segments']])
+    transcript_end = max([x['end'] for x in data['segments']])
+    annotations.add(transcript_start, transcript_end, 'raw_transcript', {'text': data['text'].strip()})        
+
+    # dump the segment-based annotations
+    offset = 0
+    strip = re.compile(r'[^a-zA-Z0-9]')
+    for s in data['segments']:
+        # segment text
+        annotations.add(s['start'], s['end'], 'transcription_segment', {'text': s['text'].strip()})
+        # diarization segment
+        annotations.add(s['start'], s['end'], 'diarization', {'speaker_label': 'spk_0'})
+        # and the individual word annotations
+        for w in s['words']:
+            short_word=strip.sub('', w['word'])
+            annotations.add(w['start'], w['end'], 'transcription_word', {'word': short_word, 'transcription_offset': offset})
+            offset += len(w['word'])
 
 
 if __name__ == "__main__":
