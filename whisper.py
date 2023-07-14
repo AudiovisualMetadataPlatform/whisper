@@ -60,8 +60,8 @@ def main():
     parser.add_argument("input_media", help="Input media file")
     parser.add_argument("--transcript_json", type=str, help="Output Whisper Transcript JSON file")
     parser.add_argument("--transcript_text", type=str, help="Output Whisper Transcript Text file")
-    parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript File")
-    parser.add_argument("--amp_diarization", type=str, help="Output AMP Diarization FIle")
+    #parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript File")
+    #parser.add_argument("--amp_diarization", type=str, help="Output AMP Diarization FIle")
     parser.add_argument("--webvtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
@@ -76,9 +76,9 @@ def main():
     annotations = Annotations(args.annotation_in, args.input_media, 
                               'whisper', '1.0', vars(args))
 
-    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None and args.amp_diarization is None:
-        logging.error("You must select an output of some sort!")
-        exit(1)
+    #if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None and args.amp_diarization is None:
+    #    logging.error("You must select an output of some sort!")
+    #    exit(1)
 
     sif = Path(sys.path[0], "whisper.sif")
     if not sif.exists():
@@ -128,11 +128,11 @@ def main():
             if args.webvtt:
                 generate_webvtt(get_file_by_ext(tmpdir, 'vtt'), args.webvtt)
 
-            if args.amp_transcript:
-                generate_amp_transcript(get_file_by_ext(tmpdir, 'json'), args.amp_transcript, args.input_media)
+            #if args.amp_transcript:
+            #    generate_amp_transcript(get_file_by_ext(tmpdir, 'json'), args.amp_transcript, args.input_media)
 
-            if args.amp_diarization:
-                generate_amp_diarization(get_file_by_ext(tmpdir, 'json'), args.amp_diarization, args.input_media)
+            #if args.amp_diarization:
+            #    generate_amp_diarization(get_file_by_ext(tmpdir, 'json'), args.amp_diarization, args.input_media)
 
         except Exception as e:
             logging.exception(f"Failed to gather outputs: {e}")

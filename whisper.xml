@@ -4,16 +4,17 @@
   	'$__tool_directory__/whisper.py' 
         --model '$model' 
         --language '$language' 
+        --annotation_in '$annotation_in'
         --webvtt '$webvtt' 
-        --amp_transcript '$amp_transcript' 
         --transcript_text '$whisper_transcript_text' 
         --transcript_json '$whisper_transcript_json'
-        --amp_diarization '$amp_diarization' 
         '$input_audio'
+        '$annotation_out'
   ]]></command>  
   <inputs>
     <!-- should be wav data type -->
     <param name="input_audio" type="data" format="wav" label="Input Audio" help="Audio file to transcribe"/>
+    <param name="annotation_in" type="data" format="json" label="AMP Annotation Input" optional="true" help="Annotations to augment"/>
     <param name="model" type="select" label="ML Training Model">
       <option value="tiny">tiny</option>
       <option value="tiny.en">tiny.en</option>
@@ -144,9 +145,10 @@
   <outputs>
     <data name="whisper_transcript_json" format="json" label="Whisper Transcript JSON"/>
     <data name="whisper_transcript_text" format="txt" label="Whisper Transcript Text" />
-    <data name="amp_transcript" format="transcript" label="AMP Transcript" />
-    <data name="amp_diarization" format="segment" label="AMP Diarization" />
+    <!-- <data name="amp_transcript" format="transcript" label="AMP Transcript" />
+    <data name="amp_diarization" format="segment" label="AMP Diarization" /> -->
     <data name="webvtt" format="txt" label="WebVTT Subtitles" />
+    <data name="annotation_out" format="json" label="AMP Annotations"/>
   </outputs>
   <tests>
   </tests>
