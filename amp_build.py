@@ -12,7 +12,7 @@ import sys
 import subprocess
 from amp.package import *
 
-VERSION="0.9"
+VERSION="1.0.0"
 
 def main():
     parser = argparse.ArgumentParser()
