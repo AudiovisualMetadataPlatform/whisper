@@ -4,7 +4,7 @@
   	'$__tool_directory__/whisper.py' 
         --model '$model' 
         --language '$language' 
-        --webvtt '$webvtt' 
+        --web_vtt '$web_vtt' 
         --amp_transcript '$amp_transcript' 
         --transcript_text '$whisper_transcript_text' 
         --transcript_json '$whisper_transcript_json'
@@ -146,7 +146,7 @@
     <data name="whisper_transcript_text" format="txt" label="Whisper Transcript Text" />
     <data name="amp_transcript" format="transcript" label="AMP Transcript" />
     <data name="amp_diarization" format="segment" label="AMP Diarization" />
-    <data name="webvtt" format="txt" label="WebVTT Subtitles" />
+    <data name="web_vtt" format="vtt" label="WebVTT Subtitles" />
   </outputs>
   <tests>
   </tests>

@@ -60,7 +60,7 @@ def main():
     parser.add_argument("--transcript_text", type=str, help="Output Whisper Transcript Text file")
     parser.add_argument("--amp_transcript", type=str, help="Output AMP Transcript File")
     parser.add_argument("--amp_diarization", type=str, help="Output AMP Diarization FIle")
-    parser.add_argument("--webvtt", type=str, help="WebVTT output")    
+    parser.add_argument("--web_vtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
     parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
@@ -68,7 +68,7 @@ def main():
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
 
-    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.webvtt is None and args.amp_diarization is None:
+    if args.transcript_json is None and args.transcript_text is None and args.amp_transcript is None and args.web_vtt is None and args.amp_diarization is None:
         logging.error("You must select an output of some sort!")
         exit(1)
 
@@ -114,8 +114,8 @@ def main():
             if args.transcript_text:
                 shutil.copy(get_file_by_ext(tmpdir, 'txt'), args.transcript_text)
 
-            if args.webvtt:
-                generate_webvtt(get_file_by_ext(tmpdir, 'vtt'), args.webvtt)
+            if args.web_vtt:
+                generate_webvtt(get_file_by_ext(tmpdir, 'vtt'), args.web_vtt)
 
             if args.amp_transcript:
                 generate_amp_transcript(get_file_by_ext(tmpdir, 'json'), args.amp_transcript, args.input_media)
