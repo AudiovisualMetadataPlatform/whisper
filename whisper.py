@@ -115,7 +115,7 @@ def main():
                 shutil.copy(get_file_by_ext(tmpdir, 'txt'), args.transcript_text)
 
             if args.web_vtt:
-                generate_webvtt(get_file_by_ext(tmpdir, 'vtt'), args.web_vtt)
+                generate_webvtt(get_file_by_ext(tmpdir, 'json'), args.web_vtt)
 
             if args.amp_transcript:
                 generate_amp_transcript(get_file_by_ext(tmpdir, 'json'), args.amp_transcript, args.input_media)
@@ -139,43 +139,17 @@ def get_file_by_ext(path, ext):
         raise FileNotFoundError(f"Cannot find file with extension {ext} in {path}")
 
 
-def generate_webvtt(whisper_vtt, output_vtt):
+def generate_webvtt(whisper_json, output_vtt):
     "Generate a VTT without underlines and with reasonable timestamps"
-    # the data out of whisper is pretty straightforward so I'm not
-    # going to worry too much about hardcore vtt parsing.                
-    with open(whisper_vtt) as i:
-        # get the size of the input file...
-        i.seek(0, os.SEEK_END)
-        i_size = i.tell()
-        i.seek(0, os.SEEK_SET)              
-        with open(output_vtt, "w") as o:
-            o.write(i.readline())  # WEBVTT
-            o.write(i.readline())  # <blank line>
-            (last_line, last_start, last_end) = (None, None, None)
-            while i.tell() < i_size:
-                (start, _, end) = i.readline().strip().split(" ")                            
-                # fixup the timestamp so it'll be in the right format
-                start = timestamp2hhmmss(hhmmss2timestamp(start))
-                end = timestamp2hhmmss(hhmmss2timestamp(end))
-                oline = i.readline().strip()
-                line = oline.replace("<u>", "").replace("</u>", "")
-                i.readline() # blank line
-                # first time through?
-                if last_line is None:
-                    (last_line, last_start, last_end) = (line, start, end)
-                # New lines start with "<u>"...
-                elif oline.startswith("<u>"):                            
-                    o.write(f"{last_start} --> {last_end}\n")
-                    o.write(last_line + "\n\n")                                
-                    (last_line, last_start, last_end) = (line, start, end)    
-                # continuation...
-                else:   
-                    last_end = end
-                
-            # catch the last one
-            if last_line is not None:
-                o.write(f"{last_start} --> {last_end}\n")
-                o.write(f"{last_line}\n\n")
+    # original version parsed the output VTT, but it makes more sense to
+    # just use the json that was generated and generate it fresh.    
+    data = read_json_file(whisper_json)
+    with open(output_vtt, "w") as o:
+        o.write('WEBVTT\n\n')
+        for seg in data['segments']:
+            start = timestamp2hhmmss(seg['start'])
+            end = timestamp2hhmmss(seg['end'])
+            o.write(f"{start} --> {end}\n{seg['text'].strip()}\n\n") 
 
 
 def generate_amp_transcript(whisper_file, amp_file, input_media):
