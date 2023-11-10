@@ -8,6 +8,7 @@ import argparse
 import logging
 from pathlib import Path
 
+
 # we need the amp packages for some things, but alas galaxy has overwritten the
 # carefully crafted PYTHONPATH that included them.  So let's get them back if
 # we can.
@@ -19,6 +20,8 @@ import amp.logging
 import amp.gpu
 from amp.timeutils import hhmmss2timestamp, timestamp2hhmmss
 from amp.fileutils import read_json_file, write_json_file
+from amp.vtt_helper import gen_vtt, words2phrases
+
 
 whisper_languages = [
     'Auto', 'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Azerbaijani',
@@ -64,6 +67,8 @@ def main():
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
     parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
     parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
+    parser.add_argument("--vtt_phrase_gap", type=float, default=1.5, help="Minimum gap between VTT subtitle phrases")
+    parser.add_argument("--vtt_max_duration", type=float, default=3.0, help="Maximum duration of VTT subtitle")
     args = parser.parse_args()    
     amp.logging.setup_logging("aws_transcribe", args.debug)    
     logging.info(f"Starting with args {args}")
@@ -115,7 +120,8 @@ def main():
                 shutil.copy(get_file_by_ext(tmpdir, 'txt'), args.transcript_text)
 
             if args.web_vtt:
-                generate_webvtt(get_file_by_ext(tmpdir, 'json'), args.web_vtt)
+                generate_webvtt(get_file_by_ext(tmpdir, 'json'), args.web_vtt, 
+                                args.vtt_phrase_gap, args.vtt_max_duration)
 
             if args.amp_transcript:
                 generate_amp_transcript(get_file_by_ext(tmpdir, 'json'), args.amp_transcript, args.input_media)
@@ -139,17 +145,27 @@ def get_file_by_ext(path, ext):
         raise FileNotFoundError(f"Cannot find file with extension {ext} in {path}")
 
 
-def generate_webvtt(whisper_json, output_vtt):
+def generate_webvtt(whisper_json, output_vtt, phrase_gap, max_duration):
     "Generate a VTT without underlines and with reasonable timestamps"
     # original version parsed the output VTT, but it makes more sense to
     # just use the json that was generated and generate it fresh.    
     data = read_json_file(whisper_json)
+    # the output of whisper's cli puts all of the words into their segments
+    # but we need a single word list for words2phrases
+    words = []
+    for s in data['segments']:
+        words.extend(s['words'])
+
+    # also, for some reason whisper likes to prepend spaces to the words so
+    # let's strip that too
+    for w in words:
+        w['word'] = w['word'].strip()
+
+    phrases = words2phrases(words, phrase_gap=phrase_gap, 
+                            max_duration=max_duration)
+
     with open(output_vtt, "w") as o:
-        o.write('WEBVTT\n\n')
-        for seg in data['segments']:
-            start = timestamp2hhmmss(seg['start'])
-            end = timestamp2hhmmss(seg['end'])
-            o.write(f"{start} --> {end}\n{seg['text'].strip()}\n\n") 
+        o.write(gen_vtt(phrases))
 
 
 def generate_amp_transcript(whisper_file, amp_file, input_media):
