@@ -19,13 +19,16 @@
       <option value="tiny.en">tiny.en</option>
       <option value="base">base</option>
       <option value="base.en">base.en</option>
-      <option value="small" selected="true">small</option>
+      <option value="small">small</option>
       <option value="small.en">small.en</option>
       <option value="medium">medium</option>
       <option value="medium.en">medium.en</option>
       <option value="large-v1">large-v1</option>
       <option value="large-v2">large-v2</option>
       <option value="large">large</option>
+      <option value="large-v3">large-v3</option>
+      <option value="large-v3-turbo">large-v3-turbo</option>
+      <option value="turbo" selected="true">turbo</option>
     </param>
     <param name="language" type="select" label="Audio Language">
       <option value="Auto" selected="true">Auto</option>
