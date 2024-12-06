@@ -53,7 +53,8 @@ whisper_languages = [
 # in the interest of size, they're now loaded to the user's home directory.
 whisper_model_dir = "/opt/whisper"
 whisper_models = ['tiny', 'tiny.en', 'base', 'base.en', 'small', 'small.en',
-                  'medium', 'medium.en', 'large-v1', 'large-v2', 'large']
+                  'medium', 'medium.en', 'large-v1', 'large-v2', 'large',
+                  'large-v3', 'large-v3-turbo', 'turbo']
 
 def main():
     parser = argparse.ArgumentParser()
@@ -65,7 +66,7 @@ def main():
     parser.add_argument("--amp_diarization", type=str, help="Output AMP Diarization FIle")
     parser.add_argument("--web_vtt", type=str, help="WebVTT output")    
     parser.add_argument("--language", choices=whisper_languages, default="Auto", help="Audio Language")
-    parser.add_argument("--model", choices=whisper_models, default='small', help="Language model to use")
+    parser.add_argument("--model", choices=whisper_models, default='turbo', help="Language model to use")
     parser.add_argument("--cpuonly", default=False, action="store_true", help="Force CPU only computation")
     parser.add_argument("--vtt_phrase_gap", type=float, default=1.5, help="Minimum gap between VTT subtitle phrases")
     parser.add_argument("--vtt_max_duration", type=float, default=3.0, help="Maximum duration of VTT subtitle")
